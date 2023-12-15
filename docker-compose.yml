@@ -1,0 +1,33 @@
+version: "3.10"
+
+services:
+  db:
+    image: postgres:14-alpine
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=cosmetics_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+
+  app:
+    build:
+      context: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/cosmetics_api
+    command: "python manage.py runserver 0.0.0.0:8000"
+    env_file:
+      - ./django_secrets.env
+    environment:
+      - DB_HOST=db
+      - DB_NAME=cosmetics_db
+      - DB_USER=postgres
+      - DB_PASS=postgres
+    depends_on:
+      - db
+
+
+volumes:
+  db-data:
