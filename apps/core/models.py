@@ -2,12 +2,21 @@
 Database models.
 """
 
+from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import (
     BaseUserManager,
     AbstractBaseUser,
     PermissionsMixin,
 )
+from .choices import (
+    PRICES,
+    UNITS,
+)
+
+
+def get_default_category(category_name):
+    return Category.object.get(name='Other')
 
 
 class UserManager(BaseUserManager):
@@ -43,3 +52,82 @@ class User(AbstractBaseUser, PermissionsMixin):
     objects = UserManager()
 
     USERNAME_FIELD = 'email'
+
+
+class Brand(models.Model):
+    """Cosmetic brand model."""
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+    )
+    name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
+
+
+class Group(models.Model):
+    """Group model."""
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+    )
+    name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
+
+
+class Category(models.Model):
+    """Category model."""
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+    )
+    name = models.CharField(max_length=100)
+    group = models.ForeignKey(Group,
+                              on_delete=models.CASCADE,
+                              related_name='categories')
+
+    def __str__(self):
+        return self.name
+
+
+class Store(models.Model):
+    """Store model."""
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+    )
+    name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
+
+
+class Product(models.Model):
+    """Product model."""
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+    )
+    name = models.CharField(max_length=255)
+    brand = models.ForeignKey(Brand,
+                              on_delete=models.SET_NULL,
+                              blank=True,
+                              null=True)
+    group = models.ForeignKey(Group, on_delete=models.CASCADE)
+    category = models.ForeignKey(Category,
+                                 on_delete=models.SET(get_default_category),
+                                 related_name='products')
+    price = models.CharField(choices=PRICES, default=2, blank=True, null=True)
+    ingredients = models.TextField(blank=True)
+    capacity = models.FloatField()
+    unit = models.CharField(choices=UNITS, default=1)
+    stores = models.ManyToManyField(Store, blank=True)
+    is_available = models.BooleanField(default=True)
+    is_favourite = models.BooleanField(default=False)
+    image = models.ImageField(upload_to='images', blank=True)
+
+    def __str__(self):
+        return self.name
