@@ -3,11 +3,11 @@ URL mappings for the user API.
 """
 from django.urls import path
 
-from .views import CreateUserView
+from .views import UserRegisterView
 
 
 app_name = 'user'
 
 urlpatterns = [
-    path('create/', CreateUserView.as_view(), name='create')
+    path('register/', UserRegisterView.as_view(), name='user-register')
 ]
