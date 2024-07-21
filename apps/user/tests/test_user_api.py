@@ -9,7 +9,8 @@ from django.urls import reverse
 from rest_framework.test import APIClient
 from rest_framework import status
 
-CREATE_USER_URL = reverse('user:create')
+CREATE_USER_URL = reverse('user:user-register')
+TOKEN_URL = reverse('user:token')
 
 
 def create_user(**params):
@@ -62,3 +63,58 @@ class UserApiTests(TestCase):
             email=payload['email']
         ).exists()
         self.assertFalse(user_exists)
+
+
+class AuthTokenTests(TestCase):
+    """Tests for the auth token API"""
+
+    def setUp(self):
+        self.client = APIClient()
+        self.username = 'testuser'
+        self.email = 'test@example.com'
+        self.password = 'Testpass123'
+        self.user = create_user(username=self.username,
+                                email=self.email,
+                                password=self.password)
+
+    def test_obtain_token_success(self):
+        """Test token is obtained with valid credentials."""
+        payload = {
+            'username': self.username,
+            'email': self.email,
+            'password': self.password
+        }
+        res = self.client.post(TOKEN_URL, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertIn('token', res.data)
+        self.assertEqual(res.data['email'], self.user.email)
+
+    def test_obtain_token_invalid_credentials(self):
+        """Test token is not obtained with invalid credentials."""
+        payload = {
+            'username': self.username,
+            'email': self.email,
+            'password': 'pass'
+        }
+        res = self.client.post(TOKEN_URL, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertNotIn('token', res.data)
+
+    def test_obtain_token_missing_credentials(self):
+        """Test token is not obtained with missing credentials."""
+        payload = {
+            'username': self.username,
+            'email': self.email,
+        }
+        res = self.client.post(TOKEN_URL, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertNotIn('token', res.data)
+
+    def test_get_method_not_allowed(self):
+        """Test GET method is not allowed."""
+        res = self.client.get(TOKEN_URL)
+
+        self.assertEqual(res.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
