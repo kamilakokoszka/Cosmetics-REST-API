@@ -36,3 +36,16 @@ class SignalsTests(TestCase):
         ]
 
         self.assertEqual(list(group_names), expected_group_names)
+
+    def test_categories_for_groups_created(self):
+        """Test 'Other' category created for each group except 'Other'"""
+        email = 'test@example.com'
+        password = 'Testpass123'
+        user = get_user_model().objects.create_user(
+            email=email,
+            password=password,
+        )
+        groups = Group.objects.filter(user=user).exclude(name='Other')
+        for group in groups:
+            category = group.categories.first()
+            self.assertEqual(category.name, 'Other')
