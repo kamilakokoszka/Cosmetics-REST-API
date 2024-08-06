@@ -1,5 +1,5 @@
 """
-Tests for the product API.
+Tests for the brand API.
 """
 
 from django.test import TestCase
@@ -11,7 +11,6 @@ from rest_framework import status
 
 from apps.core.models import Brand
 from apps.product.serializers import BrandSerializer
-from apps.product.views import BrandViewSet
 
 
 BRAND_LIST_URL = reverse('product:brand-list')
@@ -51,7 +50,7 @@ class BrandApiTests(TestCase):
         self.client.force_authenticate(self.user)
 
     def test_retrieve_brands(self):
-        """Test retrieving a list of recipes."""
+        """Test retrieving a list of stores."""
         Brand.objects.create(name='Test brand', user=self.user)
         Brand.objects.create(name='Test brand', user=self.user)
 
