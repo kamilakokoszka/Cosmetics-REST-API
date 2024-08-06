@@ -50,7 +50,7 @@ class BrandApiTests(TestCase):
         self.client.force_authenticate(self.user)
 
     def test_retrieve_brands(self):
-        """Test retrieving a list of stores."""
+        """Test retrieving a list of brands."""
         Brand.objects.create(name='Test brand', user=self.user)
         Brand.objects.create(name='Test brand', user=self.user)
 
