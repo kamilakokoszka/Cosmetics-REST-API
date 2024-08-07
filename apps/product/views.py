@@ -10,6 +10,7 @@ from rest_framework.permissions import IsAuthenticated
 
 from apps.core.models import (
     Brand,
+    Store
 )
 from . import serializers
 
@@ -31,5 +32,13 @@ class BrandViewSet(BaseViewSet, viewsets.ModelViewSet):
     """Manage Brands in the database."""
     queryset = Brand.objects.all()
     serializer_class = serializers.BrandSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+
+class StoreViewSet(BaseViewSet, viewsets.ModelViewSet):
+    """Manage Stores in the database."""
+    queryset = Store.objects.all()
+    serializer_class = serializers.StoreSerializer
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
