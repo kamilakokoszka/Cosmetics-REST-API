@@ -3,6 +3,7 @@ Database models.
 """
 
 from django.conf import settings
+from django.apps import apps
 from django.db import models
 from django.contrib.auth.models import (
     BaseUserManager,
@@ -15,8 +16,9 @@ from .choices import (
 )
 
 
-def get_default_category(category_name):
-    return Category.object.get(name='Other')
+def get_default_category(group):
+    Category = apps.get_model('core', 'Category')
+    return Category.objects.get(group=group, name='Other')
 
 
 class UserManager(BaseUserManager):
@@ -89,6 +91,12 @@ class Category(models.Model):
                               on_delete=models.CASCADE,
                               related_name='categories')
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['name', 'group'],
+                                    name='unique_category_per_group')
+        ]
+
     def __str__(self):
         return self.name
 
@@ -118,7 +126,9 @@ class Product(models.Model):
                               null=True)
     group = models.ForeignKey(Group, on_delete=models.CASCADE)
     category = models.ForeignKey(Category,
-                                 on_delete=models.SET(get_default_category),
+                                 on_delete=models.SET_NULL,
+                                 null=True,
+                                 blank=True,
                                  related_name='products')
     price = models.CharField(choices=PRICES, default=2, blank=True, null=True)
     ingredients = models.TextField(blank=True)
@@ -128,6 +138,11 @@ class Product(models.Model):
     is_available = models.BooleanField(default=True)
     is_favourite = models.BooleanField(default=False)
     image = models.ImageField(upload_to='images', blank=True)
+
+    def save(self, *args, **kwargs):
+        if not self.category:
+            self.category = get_default_category(self.group)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name
