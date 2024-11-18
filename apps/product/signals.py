@@ -19,27 +19,13 @@ GROUP_NAMES = [
 
 
 @receiver(post_save, sender=User)
-def create_groups(sender, instance, created, **kwargs):
+def create_groups_and_categories_for_user(sender, instance, created, **kwargs):
+    """Creates groups end 'Other' category in each group (except 'Other')
+    when user is created."""
     if created:
         for group_name in GROUP_NAMES:
-            Group.objects.create(name=group_name, user=instance)
-
-
-@receiver(post_save, sender=User)
-def save_groups(sender, instance, **kwargs):
-    for group in instance.group_set.all():
-        group.save()
-
-
-@receiver(post_save, sender=User)
-def create_categories(sender, instance, created, **kwargs):
-    if created:
-        groups = Group.objects.all().exclude(name='Other')
-        for group in groups:
-            Category.objects.create(name='Other', group=group, user=instance)
-
-
-@receiver(post_save, sender=User)
-def save_categories(sender, instance, **kwargs):
-    for category in instance.category_set.all():
-        category.save()
+            group = Group.objects.create(name=group_name, user=instance)
+            if group_name != 'Other':
+                Category.objects.create(name='Other',
+                                        group=group,
+                                        user=instance)
